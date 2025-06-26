@@ -13,7 +13,7 @@ Install from GitHub:
 install.packages("devtools")
 
 # Install gitRtools
-devtools::install_github("your-username/gitRtools")
+devtools::install_github("pygmyperch/gitRtools")
 ```
 
 ## Quick Start
