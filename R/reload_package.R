@@ -7,6 +7,7 @@
 #' @param branch Character. Git branch to install from. Default is "main"
 #' @param commit_message Character. Optional commit message. If provided, will commit changes
 #' @param commit Logical. Whether to commit changes. Default is TRUE if commit_message provided
+#' @param push Logical. Whether to push changes to remote after committing. Default is TRUE if commit_message provided
 #' @param repo Character. GitHub repository in format "username/repo". Auto-detected if NULL
 #' @param package Character. Package name. Auto-detected from DESCRIPTION if NULL
 #' @param verbose Logical. Print detailed progress information. Default is TRUE
@@ -17,6 +18,7 @@
 #'   \item Documents the package using roxygen2
 #'   \item Detects and safely disconnects database connections
 #'   \item Optionally commits changes to git
+#'   \item Optionally pushes changes to remote repository
 #'   \item Safely uninstalls the current package version
 #'   \item Reinstalls from GitHub
 #'   \item Restarts the R session
@@ -34,8 +36,11 @@
 #' # Basic reload from main branch
 #' reload_package()
 #'
-#' # Reload with git commit
+#' # Reload with git commit and push
 #' reload_package(commit_message = "Fix critical bug")
+#'
+#' # Reload with commit but no push
+#' reload_package(commit_message = "Work in progress", push = FALSE)
 #'
 #' # Reload from development branch
 #' reload_package(branch = "development")
@@ -54,6 +59,7 @@
 reload_package <- function(branch = "main", 
                           commit_message = NULL, 
                           commit = !is.null(commit_message),
+                          push = !is.null(commit_message),
                           repo = NULL,
                           package = NULL,
                           verbose = TRUE) {
@@ -90,10 +96,10 @@ reload_package <- function(branch = "main",
   if (verbose) cat("\nStep 2: Checking database connections...\n")
   detect_and_disconnect_dbs(verbose = verbose)
   
-  # Step 3: Optional git commit
+  # Step 3: Optional git commit and push
   if (commit && !is.null(commit_message)) {
     if (verbose) cat("\nStep 3: Committing changes...\n")
-    dev_commit(commit_message, verbose = verbose)
+    dev_commit(commit_message, push = push, verbose = verbose)
   } else {
     if (verbose) cat("\nStep 3: Skipping git commit\n")
   }
@@ -148,7 +154,8 @@ auto_detect_package_info <- function(verbose = FALSE) {
   repo <- NULL
   tryCatch({
     git_remote <- system("git remote get-url origin", intern = TRUE, ignore.stderr = TRUE)
-    if (length(git_remote) > 0 && !attr(git_remote, "status", exact = TRUE)) {
+    status_attr <- attr(git_remote, "status")
+    if (length(git_remote) > 0 && (is.null(status_attr) || status_attr == 0)) {
       # Parse GitHub URL
       if (grepl("github.com", git_remote)) {
         # Handle both SSH and HTTPS URLs

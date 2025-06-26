@@ -8,6 +8,7 @@ reload_package(
   branch = "main",
   commit_message = NULL,
   commit = !is.null(commit_message),
+  push = !is.null(commit_message),
   repo = NULL,
   package = NULL,
   verbose = TRUE
@@ -19,6 +20,8 @@ reload_package(
 \item{commit_message}{Character. Optional commit message. If provided, will commit changes}
 
 \item{commit}{Logical. Whether to commit changes. Default is TRUE if commit_message provided}
+
+\item{push}{Logical. Whether to push changes to remote after committing. Default is TRUE if commit_message provided}
 
 \item{repo}{Character. GitHub repository in format "username/repo". Auto-detected if NULL}
 
@@ -37,6 +40,7 @@ This function automates the common R package development workflow:
   \item Documents the package using roxygen2
   \item Detects and safely disconnects database connections
   \item Optionally commits changes to git
+  \item Optionally pushes changes to remote repository
   \item Safely uninstalls the current package version
   \item Reinstalls from GitHub
   \item Restarts the R session
@@ -54,8 +58,11 @@ The function automatically detects:
 # Basic reload from main branch
 reload_package()
 
-# Reload with git commit
+# Reload with git commit and push
 reload_package(commit_message = "Fix critical bug")
+
+# Reload with commit but no push
+reload_package(commit_message = "Work in progress", push = FALSE)
 
 # Reload from development branch
 reload_package(branch = "development")
